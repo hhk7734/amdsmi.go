@@ -57,6 +57,8 @@ TRANSLATOR:
         from: ^RSMI_IOLINK_TYPE_SIZE
       - action: ignore
         from: ^RSMI_INVALID_POWER
+      - action: replace
+        from: ^RSMI_
     type:
       - action: accept
         from: ^rsmi.*_t$
