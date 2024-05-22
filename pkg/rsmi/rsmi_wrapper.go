@@ -59,6 +59,15 @@ func (r *RSMI) DevPCIID(deviceIndex uint32) (uint64, error) {
 	return pciID, nil
 }
 
+func (r *RSMI) DevPowerAve(deviceIndex uint32, powerIndex uint32) (float64, error) {
+	var power uint64
+	if err := rsmi_dev_power_ave_get(deviceIndex, powerIndex, &power).Err(); err != nil {
+		return 0, err
+	}
+
+	return float64(power) / 1_000_000, nil
+}
+
 func (r *RSMI) DevMemoryTotal(deviceIndex uint32, type_ memoryType) (uint64, error) {
 	var total uint64
 	if err := rsmi_dev_memory_total_get(deviceIndex, type_, &total).Err(); err != nil {
