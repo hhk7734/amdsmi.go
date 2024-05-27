@@ -130,30 +130,50 @@ func (p *processor) GPUID() (uint16, error) {
 	return uint16(gpuID), nil
 }
 
-func (p *processor) GPUFanRPM(fanIndex uint32) (uint32, error) {
+func (p *processor) GPUMemoryTotal(type_ memoryType) (uint64, error) {
+	var memoryTotal C.uint64_t
+	if err := amdsmiStatus(C.amdsmi_get_gpu_memory_total(
+		p.handle, C.amdsmi_memory_type_t(type_), &memoryTotal)).Err(); err != nil {
+		return 0, err
+	}
+
+	return uint64(memoryTotal), nil
+}
+
+func (p *processor) GPUMemoryUsage(type_ memoryType) (uint64, error) {
+	var memoryUsed C.uint64_t
+	if err := amdsmiStatus(C.amdsmi_get_gpu_memory_usage(
+		p.handle, C.amdsmi_memory_type_t(type_), &memoryUsed)).Err(); err != nil {
+		return 0, err
+	}
+
+	return uint64(memoryUsed), nil
+}
+
+func (p *processor) GPUFanRPM(index uint32) (uint32, error) {
 	var fanRPMs C.int64_t
 	if err := amdsmiStatus(C.amdsmi_get_gpu_fan_rpms(
-		p.handle, C.uint32_t(fanIndex), &fanRPMs)).Err(); err != nil {
+		p.handle, C.uint32_t(index), &fanRPMs)).Err(); err != nil {
 		return 0, err
 	}
 
 	return uint32(fanRPMs), nil
 }
 
-func (p *processor) GPUFanSpeed(fanIndex uint32) (uint32, error) {
+func (p *processor) GPUFanSpeed(index uint32) (uint32, error) {
 	var fanSpeed C.int64_t
 	if err := amdsmiStatus(C.amdsmi_get_gpu_fan_speed(
-		p.handle, C.uint32_t(fanIndex), &fanSpeed)).Err(); err != nil {
+		p.handle, C.uint32_t(index), &fanSpeed)).Err(); err != nil {
 		return 0, err
 	}
 
 	return uint32(fanSpeed), nil
 }
 
-func (p *processor) GPUFanSpeedMax(fanIndex uint32) (uint32, error) {
+func (p *processor) GPUFanSpeedMax(index uint32) (uint32, error) {
 	var fanSpeedMax C.uint64_t
 	if err := amdsmiStatus(C.amdsmi_get_gpu_fan_speed_max(
-		p.handle, C.uint32_t(fanIndex), &fanSpeedMax)).Err(); err != nil {
+		p.handle, C.uint32_t(index), &fanSpeedMax)).Err(); err != nil {
 		return 0, err
 	}
 

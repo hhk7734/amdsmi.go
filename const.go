@@ -194,23 +194,23 @@ type temperatureType uint32
 
 const (
 	TEMP_TYPE_EDGE     temperatureType = C.TEMPERATURE_TYPE_EDGE
-	TEMP_TYPE_FIRST    temperatureType = TEMP_TYPE_EDGE
+	TEMP_TYPE_FIRST    temperatureType = C.TEMPERATURE_TYPE_FIRST
 	TEMP_TYPE_HOTSPOT  temperatureType = C.TEMPERATURE_TYPE_HOTSPOT
-	TEMP_TYPE_JUNCTION temperatureType = TEMP_TYPE_HOTSPOT
+	TEMP_TYPE_JUNCTION temperatureType = C.TEMPERATURE_TYPE_JUNCTION
 	TEMP_TYPE_VRAM     temperatureType = C.TEMPERATURE_TYPE_VRAM
 	TEMP_TYPE_HBM_0    temperatureType = C.TEMPERATURE_TYPE_HBM_0
 	TEMP_TYPE_HBM_1    temperatureType = C.TEMPERATURE_TYPE_HBM_1
 	TEMP_TYPE_HBM_2    temperatureType = C.TEMPERATURE_TYPE_HBM_2
 	TEMP_TYPE_HBM_3    temperatureType = C.TEMPERATURE_TYPE_HBM_3
 	TEMP_TYPE_PLX      temperatureType = C.TEMPERATURE_TYPE_PLX
-	TEMP_TYPE__MAX     temperatureType = TEMP_TYPE_PLX
+	TEMP_TYPE__MAX     temperatureType = C.TEMPERATURE_TYPE__MAX
 )
 
 type temperatureMetric uint32
 
 const (
 	TEMP_CURRENT        temperatureMetric = C.AMDSMI_TEMP_CURRENT
-	TEMP_FIRST          temperatureMetric = TEMP_CURRENT
+	TEMP_FIRST          temperatureMetric = C.AMDSMI_TEMP_FIRST
 	TEMP_MAX            temperatureMetric = C.AMDSMI_TEMP_MAX
 	TEMP_MIN            temperatureMetric = C.AMDSMI_TEMP_MIN
 	TEMP_MAX_HYST       temperatureMetric = C.AMDSMI_TEMP_MAX_HYST
@@ -224,5 +224,15 @@ const (
 	TEMP_OFFSET         temperatureMetric = C.AMDSMI_TEMP_OFFSET
 	TEMP_LOWEST         temperatureMetric = C.AMDSMI_TEMP_LOWEST
 	TEMP_HIGHEST        temperatureMetric = C.AMDSMI_TEMP_HIGHEST
-	TEMP_LAST           temperatureMetric = TEMP_HIGHEST
+	TEMP_LAST           temperatureMetric = C.AMDSMI_TEMP_LAST
+)
+
+type memoryType uint32
+
+const (
+	MEM_TYPE_FIRST    memoryType = C.AMDSMI_MEM_TYPE_FIRST
+	MEM_TYPE_VRAM     memoryType = C.AMDSMI_MEM_TYPE_VRAM
+	MEM_TYPE_VIS_VRAM memoryType = C.AMDSMI_MEM_TYPE_VIS_VRAM
+	MEM_TYPE_GTT      memoryType = C.AMDSMI_MEM_TYPE_GTT
+	MEM_TYPE_LAST     memoryType = C.AMDSMI_MEM_TYPE_LAST
 )
