@@ -1,7 +1,7 @@
 package rsmi
 
 import (
-	"github.com/hhk7734/rocm_smi.go/pkg/dl"
+	"github.com/hhk7734/amdsmi.go/pkg/dl"
 )
 
 // #include "rocm_smi/rocm_smi.h"
