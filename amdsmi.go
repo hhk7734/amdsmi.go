@@ -46,11 +46,11 @@ func (a *AMDSMI) Shutdown() error {
 	return nil
 }
 
-type socket struct {
+type Socket struct {
 	handle C.amdsmi_socket_handle
 }
 
-func (a *AMDSMI) Sockets() ([]*socket, error) {
+func (a *AMDSMI) Sockets() ([]*Socket, error) {
 	var socketCount C.uint32_t
 	if err := amdsmiStatus(C.amdsmi_get_socket_handles(
 		&socketCount, nil)).Err(); err != nil {
@@ -63,9 +63,9 @@ func (a *AMDSMI) Sockets() ([]*socket, error) {
 		return nil, err
 	}
 
-	sockets := make([]*socket, socketCount)
+	sockets := make([]*Socket, socketCount)
 	for i := 0; i < int(socketCount); i++ {
-		sockets[i] = &socket{
+		sockets[i] = &Socket{
 			handle: socketHandles[i],
 		}
 	}
@@ -73,7 +73,7 @@ func (a *AMDSMI) Sockets() ([]*socket, error) {
 	return sockets, nil
 }
 
-func (s *socket) Info() (string, error) {
+func (s *Socket) Info() (string, error) {
 	info := make([]byte, 128)
 	if err := amdsmiStatus(C.amdsmi_get_socket_info(
 		s.handle, C.size_t(len(info)), (*C.char)(unsafe.Pointer(&info[0])))).Err(); err != nil {
@@ -83,11 +83,11 @@ func (s *socket) Info() (string, error) {
 	return string(info), nil
 }
 
-type processor struct {
+type Processor struct {
 	handle C.amdsmi_processor_handle
 }
 
-func (s *socket) Processors() ([]*processor, error) {
+func (s *Socket) Processors() ([]*Processor, error) {
 	var processorCount C.uint32_t
 	if err := amdsmiStatus(C.amdsmi_get_processor_handles(
 		s.handle, &processorCount, nil)).Err(); err != nil {
@@ -100,9 +100,9 @@ func (s *socket) Processors() ([]*processor, error) {
 		return nil, err
 	}
 
-	processors := make([]*processor, processorCount)
+	processors := make([]*Processor, processorCount)
 	for i := 0; i < int(processorCount); i++ {
-		processors[i] = &processor{
+		processors[i] = &Processor{
 			handle: processorHandles[i],
 		}
 	}
@@ -110,7 +110,7 @@ func (s *socket) Processors() ([]*processor, error) {
 	return processors, nil
 }
 
-func (p *processor) Type() (processorType, error) {
+func (p *Processor) Type() (processorType, error) {
 	var type_ C.processor_type_t
 	if err := amdsmiStatus(C.amdsmi_get_processor_type(
 		p.handle, &type_)).Err(); err != nil {
@@ -120,7 +120,7 @@ func (p *processor) Type() (processorType, error) {
 	return processorType(type_), nil
 }
 
-func (p *processor) GPUID() (uint16, error) {
+func (p *Processor) GPUID() (uint16, error) {
 	var gpuID C.uint16_t
 	if err := amdsmiStatus(C.amdsmi_get_gpu_id(
 		p.handle, &gpuID)).Err(); err != nil {
@@ -130,7 +130,7 @@ func (p *processor) GPUID() (uint16, error) {
 	return uint16(gpuID), nil
 }
 
-func (p *processor) GPUMemoryTotal(type_ memoryType) (uint64, error) {
+func (p *Processor) GPUMemoryTotal(type_ memoryType) (uint64, error) {
 	var memoryTotal C.uint64_t
 	if err := amdsmiStatus(C.amdsmi_get_gpu_memory_total(
 		p.handle, C.amdsmi_memory_type_t(type_), &memoryTotal)).Err(); err != nil {
@@ -140,7 +140,7 @@ func (p *processor) GPUMemoryTotal(type_ memoryType) (uint64, error) {
 	return uint64(memoryTotal), nil
 }
 
-func (p *processor) GPUMemoryUsage(type_ memoryType) (uint64, error) {
+func (p *Processor) GPUMemoryUsage(type_ memoryType) (uint64, error) {
 	var memoryUsed C.uint64_t
 	if err := amdsmiStatus(C.amdsmi_get_gpu_memory_usage(
 		p.handle, C.amdsmi_memory_type_t(type_), &memoryUsed)).Err(); err != nil {
@@ -150,7 +150,7 @@ func (p *processor) GPUMemoryUsage(type_ memoryType) (uint64, error) {
 	return uint64(memoryUsed), nil
 }
 
-func (p *processor) GPUFanRPM(index uint32) (uint32, error) {
+func (p *Processor) GPUFanRPM(index uint32) (uint32, error) {
 	var fanRPMs C.int64_t
 	if err := amdsmiStatus(C.amdsmi_get_gpu_fan_rpms(
 		p.handle, C.uint32_t(index), &fanRPMs)).Err(); err != nil {
@@ -160,7 +160,7 @@ func (p *processor) GPUFanRPM(index uint32) (uint32, error) {
 	return uint32(fanRPMs), nil
 }
 
-func (p *processor) GPUFanSpeed(index uint32) (uint32, error) {
+func (p *Processor) GPUFanSpeed(index uint32) (uint32, error) {
 	var fanSpeed C.int64_t
 	if err := amdsmiStatus(C.amdsmi_get_gpu_fan_speed(
 		p.handle, C.uint32_t(index), &fanSpeed)).Err(); err != nil {
@@ -170,7 +170,7 @@ func (p *processor) GPUFanSpeed(index uint32) (uint32, error) {
 	return uint32(fanSpeed), nil
 }
 
-func (p *processor) GPUFanSpeedMax(index uint32) (uint32, error) {
+func (p *Processor) GPUFanSpeedMax(index uint32) (uint32, error) {
 	var fanSpeedMax C.uint64_t
 	if err := amdsmiStatus(C.amdsmi_get_gpu_fan_speed_max(
 		p.handle, C.uint32_t(index), &fanSpeedMax)).Err(); err != nil {
@@ -180,7 +180,7 @@ func (p *processor) GPUFanSpeedMax(index uint32) (uint32, error) {
 	return uint32(fanSpeedMax), nil
 }
 
-func (p *processor) Temperature(type_ temperatureType, metric temperatureMetric) (int64, error) {
+func (p *Processor) Temperature(type_ temperatureType, metric temperatureMetric) (int64, error) {
 	var temp C.int64_t
 	if err := amdsmiStatus(C.amdsmi_get_temp_metric(
 		p.handle, C.amdsmi_temperature_type_t(type_), C.amdsmi_temperature_metric_t(metric), &temp)).Err(); err != nil {
@@ -190,7 +190,7 @@ func (p *processor) Temperature(type_ temperatureType, metric temperatureMetric)
 	return int64(temp), nil
 }
 
-func (p *processor) GPUMetricsInfo() (GPUMetrics, error) {
+func (p *Processor) GPUMetricsInfo() (GPUMetrics, error) {
 	var metrics C.amdsmi_gpu_metrics_t
 	if err := amdsmiStatus(C.amdsmi_get_gpu_metrics_info(p.handle, &metrics)).Err(); err != nil {
 		return GPUMetrics{}, err
