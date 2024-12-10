@@ -189,3 +189,124 @@ func (p *processor) Temperature(type_ temperatureType, metric temperatureMetric)
 
 	return int64(temp), nil
 }
+
+func (p *processor) GPUMetricsInfo() (GPUMetrics, error) {
+	var metrics C.amdsmi_gpu_metrics_t
+	if err := amdsmiStatus(C.amdsmi_get_gpu_metrics_info(p.handle, &metrics)).Err(); err != nil {
+		return GPUMetrics{}, err
+	}
+
+	gpuMetrics := GPUMetrics{
+		CommonHeader: MetricsTableHeader{
+			StructureSize:   uint16(metrics.common_header.structure_size),
+			FormatRevision:  uint8(metrics.common_header.format_revision),
+			ContentRevision: uint8(metrics.common_header.content_revision),
+		},
+
+		TemperatureEdge:    uint16(metrics.temperature_edge),
+		TemperatureHotspot: uint16(metrics.temperature_hotspot),
+		TemperatureMem:     uint16(metrics.temperature_mem),
+		TemperatureVRGFX:   uint16(metrics.temperature_vrgfx),
+		TemperatureVRSoC:   uint16(metrics.temperature_vrsoc),
+		TemperatureVRMem:   uint16(metrics.temperature_vrmem),
+
+		AverageGFXActivity: uint16(metrics.average_gfx_activity),
+		AverageUMCActivity: uint16(metrics.average_umc_activity),
+		AverageMMActivity:  uint16(metrics.average_mm_activity),
+
+		AverageSocketPower: uint16(metrics.average_socket_power),
+		EnergyAccumulator:  uint64(metrics.energy_accumulator),
+
+		SystemClockCounter: uint64(metrics.system_clock_counter),
+
+		AverageGFXCLKFrequency: uint16(metrics.average_gfxclk_frequency),
+		AverageSoCCLKFrequency: uint16(metrics.average_socclk_frequency),
+		AverageUCLKFrequency:   uint16(metrics.average_uclk_frequency),
+		AverageVCLK0Frequency:  uint16(metrics.average_vclk0_frequency),
+		AverageDCLK0Frequency:  uint16(metrics.average_dclk0_frequency),
+		AverageVCLK1Frequency:  uint16(metrics.average_vclk1_frequency),
+		AverageDCLK1Frequency:  uint16(metrics.average_dclk1_frequency),
+
+		CurrentGFXCLK: uint16(metrics.current_gfxclk),
+		CurrentSoCCLK: uint16(metrics.current_socclk),
+		CurrentUCLK:   uint16(metrics.current_uclk),
+		CurrentVCLK0:  uint16(metrics.current_vclk0),
+		CurrentDCLK0:  uint16(metrics.current_dclk0),
+		CurrentVCLK1:  uint16(metrics.current_vclk1),
+		CurrentDCLK1:  uint16(metrics.current_dclk1),
+
+		ThrottleStatus: uint32(metrics.throttle_status),
+
+		CurrentFanSpeed: uint16(metrics.current_fan_speed),
+
+		PCIELinkWidth: uint16(metrics.pcie_link_width),
+		PCIELinkSpeed: uint16(metrics.pcie_link_speed),
+
+		GFXActivityAcc: uint32(metrics.gfx_activity_acc),
+		MemActivityAcc: uint32(metrics.mem_activity_acc),
+		TemperatureHBM: [NUM_HBM_INSTANCE]uint16{},
+
+		FirmwareTimestamp: uint64(metrics.firmware_timestamp),
+
+		VoltageSoC: uint16(metrics.voltage_soc),
+		VoltageGFX: uint16(metrics.voltage_gfx),
+		VoltageMem: uint16(metrics.voltage_mem),
+
+		IndepThrottleStatus: uint64(metrics.indep_throttle_status),
+
+		CurrentSocketPower: uint16(metrics.current_socket_power),
+
+		GFXCLKLockStatus: uint32(metrics.gfxclk_lock_status),
+
+		XGMILinkWidth: uint16(metrics.xgmi_link_width),
+		XGMILinkSpeed: uint16(metrics.xgmi_link_speed),
+
+		PCIEBandwidthAcc: uint64(metrics.pcie_bandwidth_acc),
+
+		PCIEBandwidthInst: uint64(metrics.pcie_bandwidth_inst),
+
+		PCIEL0ToRecovCountAcc: uint64(metrics.pcie_l0_to_recov_count_acc),
+
+		PCIEReplayCountAcc: uint64(metrics.pcie_replay_count_acc),
+
+		PCIEReplayRoverCountAcc: uint64(metrics.pcie_replay_rover_count_acc),
+
+		XGMIReadDataAcc:  [MAX_NUM_XGMI_LINKS]uint64{},
+		XGMIWriteDataAcc: [MAX_NUM_XGMI_LINKS]uint64{},
+
+		CurrentGFXCLKs: [MAX_NUM_GFX_CLKS]uint16{},
+		CurrentSoCCLKs: [MAX_NUM_CLKS]uint16{},
+		CurrentVCLK0s:  [MAX_NUM_CLKS]uint16{},
+		CurrentDCLK0s:  [MAX_NUM_CLKS]uint16{},
+
+		JPEGActivity: [MAX_NUM_JPEG]uint16{},
+
+		PCIENAKSentCountAcc: uint32(metrics.pcie_nak_sent_count_acc),
+		PCIENAKRcvdCountAcc: uint32(metrics.pcie_nak_rcvd_count_acc),
+	}
+
+	for i := 0; i < NUM_HBM_INSTANCE; i++ {
+		gpuMetrics.TemperatureHBM[i] = uint16(metrics.temperature_hbm[i])
+	}
+
+	for i := 0; i < MAX_NUM_XGMI_LINKS; i++ {
+		gpuMetrics.XGMIReadDataAcc[i] = uint64(metrics.xgmi_read_data_acc[i])
+		gpuMetrics.XGMIWriteDataAcc[i] = uint64(metrics.xgmi_write_data_acc[i])
+	}
+
+	for i := 0; i < MAX_NUM_GFX_CLKS; i++ {
+		gpuMetrics.CurrentGFXCLKs[i] = uint16(metrics.current_gfxclks[i])
+	}
+
+	for i := 0; i < MAX_NUM_CLKS; i++ {
+		gpuMetrics.CurrentSoCCLKs[i] = uint16(metrics.current_socclks[i])
+		gpuMetrics.CurrentVCLK0s[i] = uint16(metrics.current_vclk0s[i])
+		gpuMetrics.CurrentDCLK0s[i] = uint16(metrics.current_dclk0s[i])
+	}
+
+	for i := 0; i < MAX_NUM_JPEG; i++ {
+		gpuMetrics.JPEGActivity[i] = uint16(metrics.jpeg_activity[i])
+	}
+
+	return gpuMetrics, nil
+}
