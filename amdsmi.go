@@ -130,6 +130,92 @@ func (p *Processor) GPUID() (uint16, error) {
 	return uint16(gpuID), nil
 }
 
+func (p *Processor) GPURevision() (uint16, error) {
+	var gpuRevision C.uint16_t
+	if err := amdsmiStatus(C.amdsmi_get_gpu_revision(
+		p.handle, &gpuRevision)).Err(); err != nil {
+		return 0, err
+	}
+
+	return uint16(gpuRevision), nil
+}
+
+func (p *Processor) GPUVendorName() (string, error) {
+	vendor := make([]byte, 128)
+	if err := amdsmiStatus(C.amdsmi_get_gpu_vendor_name(
+		p.handle, (*C.char)(unsafe.Pointer(&vendor[0])), C.size_t(len(vendor)))).Err(); err != nil {
+		return "", err
+	}
+
+	return string(vendor), nil
+}
+
+func (p *Processor) GPUVRAMVendor() (string, error) {
+	vramVendor := make([]byte, 128)
+	if err := amdsmiStatus(C.amdsmi_get_gpu_vram_vendor(
+		p.handle, (*C.char)(unsafe.Pointer(&vramVendor[0])), C.uint32_t(len(vramVendor)))).Err(); err != nil {
+		return "", err
+	}
+
+	return string(vramVendor), nil
+}
+
+func (p *Processor) GPUSubsystemID() (uint16, error) {
+	var subsystemID C.uint16_t
+	if err := amdsmiStatus(C.amdsmi_get_gpu_subsystem_id(
+		p.handle, &subsystemID)).Err(); err != nil {
+		return 0, err
+	}
+
+	return uint16(subsystemID), nil
+}
+
+func (p *Processor) GPUSubsystemName() (string, error) {
+	subsystem := make([]byte, 128)
+	if err := amdsmiStatus(C.amdsmi_get_gpu_subsystem_name(
+		p.handle, (*C.char)(unsafe.Pointer(&subsystem[0])), C.size_t(len(subsystem)))).Err(); err != nil {
+		return "", err
+	}
+
+	return string(subsystem), nil
+}
+
+func (p *Processor) GPUPCIeBandwidth() (PCIeBandwidth, error) {
+	var bandwidth C.amdsmi_pcie_bandwidth_t
+	if err := amdsmiStatus(C.amdsmi_get_gpu_pci_bandwidth(
+		p.handle, &bandwidth)).Err(); err != nil {
+		return PCIeBandwidth{}, err
+	}
+
+	pcieBandwidth := PCIeBandwidth{
+		TransferRate: Frequencies{
+			HasDeepSleep: bool(bandwidth.transfer_rate.has_deep_sleep),
+			NumSupported: uint32(bandwidth.transfer_rate.num_supported),
+			Current:      uint32(bandwidth.transfer_rate.current),
+			Frequency:    [MAX_NUM_FREQUENCIES]uint64{},
+		},
+		Lanes: [MAX_NUM_FREQUENCIES]uint32{},
+	}
+
+	for i := 0; i < MAX_NUM_FREQUENCIES; i++ {
+		pcieBandwidth.TransferRate.Frequency[i] = uint64(bandwidth.transfer_rate.frequency[i])
+		pcieBandwidth.Lanes[i] = uint32(bandwidth.lanes[i])
+	}
+
+	return pcieBandwidth, nil
+}
+
+func (p *Processor) GPUBDFID() (uint64, error) {
+	var bdfid C.uint64_t
+	if err := amdsmiStatus(C.amdsmi_get_gpu_bdf_id(
+		p.handle, &bdfid)).Err(); err != nil {
+		return 0, err
+	}
+
+	return uint64(bdfid), nil
+}
+
+// GPUMemoryTotal returns the total memory of type_ in bytes.
 func (p *Processor) GPUMemoryTotal(type_ memoryType) (uint64, error) {
 	var memoryTotal C.uint64_t
 	if err := amdsmiStatus(C.amdsmi_get_gpu_memory_total(
@@ -140,6 +226,7 @@ func (p *Processor) GPUMemoryTotal(type_ memoryType) (uint64, error) {
 	return uint64(memoryTotal), nil
 }
 
+// GPUMemoryUsage returns the memory usage of type_ in bytes.
 func (p *Processor) GPUMemoryUsage(type_ memoryType) (uint64, error) {
 	var memoryUsed C.uint64_t
 	if err := amdsmiStatus(C.amdsmi_get_gpu_memory_usage(
@@ -239,8 +326,8 @@ func (p *Processor) GPUMetricsInfo() (GPUMetrics, error) {
 
 		CurrentFanSpeed: uint16(metrics.current_fan_speed),
 
-		PCIELinkWidth: uint16(metrics.pcie_link_width),
-		PCIELinkSpeed: uint16(metrics.pcie_link_speed),
+		PCIeLinkWidth: uint16(metrics.pcie_link_width),
+		PCIeLinkSpeed: uint16(metrics.pcie_link_speed),
 
 		GFXActivityAcc: uint32(metrics.gfx_activity_acc),
 		MemActivityAcc: uint32(metrics.mem_activity_acc),
@@ -261,15 +348,15 @@ func (p *Processor) GPUMetricsInfo() (GPUMetrics, error) {
 		XGMILinkWidth: uint16(metrics.xgmi_link_width),
 		XGMILinkSpeed: uint16(metrics.xgmi_link_speed),
 
-		PCIEBandwidthAcc: uint64(metrics.pcie_bandwidth_acc),
+		PCIeBandwidthAcc: uint64(metrics.pcie_bandwidth_acc),
 
-		PCIEBandwidthInst: uint64(metrics.pcie_bandwidth_inst),
+		PCIeBandwidthInst: uint64(metrics.pcie_bandwidth_inst),
 
-		PCIEL0ToRecovCountAcc: uint64(metrics.pcie_l0_to_recov_count_acc),
+		PCIeL0ToRecovCountAcc: uint64(metrics.pcie_l0_to_recov_count_acc),
 
-		PCIEReplayCountAcc: uint64(metrics.pcie_replay_count_acc),
+		PCIeReplayCountAcc: uint64(metrics.pcie_replay_count_acc),
 
-		PCIEReplayRoverCountAcc: uint64(metrics.pcie_replay_rover_count_acc),
+		PCIeReplayRoverCountAcc: uint64(metrics.pcie_replay_rover_count_acc),
 
 		XGMIReadDataAcc:  [MAX_NUM_XGMI_LINKS]uint64{},
 		XGMIWriteDataAcc: [MAX_NUM_XGMI_LINKS]uint64{},
@@ -281,8 +368,8 @@ func (p *Processor) GPUMetricsInfo() (GPUMetrics, error) {
 
 		JPEGActivity: [MAX_NUM_JPEG]uint16{},
 
-		PCIENAKSentCountAcc: uint32(metrics.pcie_nak_sent_count_acc),
-		PCIENAKRcvdCountAcc: uint32(metrics.pcie_nak_rcvd_count_acc),
+		PCIeNAKSentCountAcc: uint32(metrics.pcie_nak_sent_count_acc),
+		PCIeNAKRcvdCountAcc: uint32(metrics.pcie_nak_rcvd_count_acc),
 	}
 
 	for i := 0; i < NUM_HBM_INSTANCE; i++ {
