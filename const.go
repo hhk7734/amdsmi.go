@@ -217,6 +217,10 @@ const (
 	TEMP_TYPE__MAX     temperatureType = C.TEMPERATURE_TYPE__MAX
 )
 
+const (
+	MAX_NUM_FREQUENCIES = C.AMDSMI_MAX_NUM_FREQUENCIES
+)
+
 type temperatureMetric uint32
 
 const (
